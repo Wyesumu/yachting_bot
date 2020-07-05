@@ -41,7 +41,8 @@ def start(message):
 			'name': 0,
 			'phone': 0,
 			'email': 0,
-			'licence': 0
+			'licence': 0,
+			'date': 0
 		})
 	users.update({'temp': 0}, Query().chatId == message.chat.id)
 	pre_markup = telebot.types.InlineKeyboardMarkup()
@@ -80,34 +81,34 @@ def handle_day_query(call):
 @bot.callback_query_handler(func=lambda call: 'MONTH' in call.data)
 def handle_month_query(call):
 
-    info = call.data.split(';')
-    month_opt = info[0].split('-')[0]
-    year, month = int(info[1]), int(info[2])
-    chat_id = call.message.chat.id
+	info = call.data.split(';')
+	month_opt = info[0].split('-')[0]
+	year, month = int(info[1]), int(info[2])
+	chat_id = call.message.chat.id
 
-    if month_opt == 'PREV':
-        month -= 1
+	if month_opt == 'PREV':
+		month -= 1
 
-    elif month_opt == 'NEXT':
-        month += 1
+	elif month_opt == 'NEXT':
+		month += 1
 
-    if month < 1:
-        month = 12
-        year -= 1
+	if month < 1:
+		month = 12
+		year -= 1
 
-    if month > 12:
-        month = 1
-        year += 1
+	if month > 12:
+		month = 1
+		year += 1
 
-    date = (year, month)
-    current_shown_dates[chat_id] = date
-    markup = create_calendar(year, month)
-    bot.edit_message_text(config.messages['reply_send_start_date'], call.from_user.id, call.message.message_id, reply_markup=markup)
+	date = (year, month)
+	current_shown_dates[chat_id] = date
+	markup = create_calendar(year, month)
+	bot.edit_message_text(config.messages['reply_send_start_date'], call.from_user.id, call.message.message_id, reply_markup=markup)
 
 
 @bot.callback_query_handler(func=lambda call: "IGNORE" in call.data)
 def ignore(call):
-    bot.answer_callback_query(call.id, text="OOPS... something went wrong")
+	bot.answer_callback_query(call.id, text="OOPS... something went wrong")
 
 @bot.callback_query_handler(func=lambda call:True)
 def call_handler(call):
@@ -125,6 +126,7 @@ def call_handler(call):
 		worksheet.write(0, 7, 'Телефон')
 		worksheet.write(0, 8, 'E-mail')
 		worksheet.write(0, 9, 'Лицензия')
+		worksheet.write(0, 10, 'Дата обращения')
 		list_user = users.search(Query().chatId > 1)
 		for i,user in enumerate(list_user):
 
@@ -138,6 +140,10 @@ def call_handler(call):
 			worksheet.write(i+1, 7, user['phone'])
 			worksheet.write(i+1, 8, user['email'])
 			worksheet.write(i+1, 9, user['licence'])
+			try:
+				worksheet.write(i+1, 10, user['date'])
+			except:
+				pass
 
 		workbook.close()
 
@@ -280,6 +286,7 @@ def text_handler(message):
 					except:
 						pass
 
+				users.update({'date': datetime.datetime.now().strftime('%d/%m/%Y %X')}, Query().chatId == message.chat.id)
 				users.update({'stage': 'email_input'}, Query().chatId == message.chat.id)
 				bot.send_message(message.chat.id, config.messages['reply_send_email'])
 			else:
