@@ -1,5 +1,5 @@
-token = '1264223203:AAGp8qNX4UNeQNISKf82qf_GwrNu3S1iyww'
-admin = [107032675,783784216,251272982,386226837]
+token = ''
+admin = []
 
 messages = {
 	'pre_start': '''Здравствуйте, 
